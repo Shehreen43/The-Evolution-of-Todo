@@ -1,0 +1,16 @@
+[project]
+name = "todo-console"
+version = "1.0.0"
+description = "Phase I - In-Memory Todo Console Application"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+todo = "src.cli.main:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src", "src.models", "src.repository", "src.service", "src.cli"]

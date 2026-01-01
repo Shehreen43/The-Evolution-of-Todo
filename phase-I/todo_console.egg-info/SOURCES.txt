@@ -1,7 +1,8 @@
+README.md
 pyproject.toml
 src/__init__.py
 src/cli/__init__.py
-src/cli/main.py
+src/cli/app.py
 src/models/__init__.py
 src/models/task.py
 src/repository/__init__.py

@@ -20,12 +20,13 @@ class TaskService:
         """
         self._repository = repository
 
-    def create_task(self, title: str, description: str = "") -> Task:
+    def create_task(self, title: str, description: str = "", priority: str = "medium") -> Task:
         """Create a new task with validation.
 
         Args:
             title: Task title (1-200 characters)
             description: Optional task description (0-1000 characters)
+            priority: Task priority ('high', 'medium', 'low', default: 'medium')
 
         Returns:
             Created task with assigned ID
@@ -34,7 +35,7 @@ class TaskService:
             ValueError: If validation fails
         """
         # Task validation happens in Task.__post_init__
-        task = Task(title=title, description=description)
+        task = Task(title=title, description=description, priority=priority)
         return self._repository.add(task)
 
     def list_tasks(self) -> list[Task]:

@@ -2,11 +2,11 @@
 name = "todo-console"
 version = "1.0.0"
 description = "Phase I - In-Memory Todo Console Application"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = []
 
 [project.scripts]
-todo = "src.cli.main:main"
+todo = "src.cli.app:main"
 
 [build-system]
 requires = ["setuptools>=68.0"]

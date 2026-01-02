@@ -64,7 +64,8 @@ def print_interactive_help():
 {Colors.CYAN}Available Commands:{Colors.RESET}
   {Colors.GREEN}➕ add{Colors.RESET}                - Add a new task (guided prompts)
   {Colors.GREEN}📋 list{Colors.RESET}               - View all tasks in table format
-  {Colors.GREEN}👁️  Search{Colors.RESET} <id>       - View task details
+  {Colors.GREEN}👁️  get{Colors.RESET} <id>          - View task details by ID
+  {Colors.GREEN}🔍 search{Colors.RESET} <id/title>   - Search tasks by ID or Title
   {Colors.GREEN}✅ complete{Colors.RESET} <id>      - Toggle task completion
   {Colors.GREEN}✏️  update{Colors.RESET}            - Update task by ID or Title (guided prompts)
   {Colors.GREEN}🗑️  delete{Colors.RESET} <id>       - Delete a task
@@ -201,7 +202,7 @@ def interactive_list(service: TaskService):
 
 
 def interactive_get(service: TaskService, parts: list):
-    """Handle 'get' command - displays detailed task information including priority."""
+    """Handle 'get' command - displays detailed task information by ID."""
     if len(parts) < 2:
         print(f"{Colors.RED}❌ Error: Task ID required{Colors.RESET}")
         print(f"{Colors.YELLOW}Usage: get <id>{Colors.RESET}")
@@ -234,6 +235,82 @@ def interactive_get(service: TaskService, parts: list):
     print(f"{Colors.BLUE}Priority:{Colors.RESET} {priority_colors[task.priority]}")
     print(f"{Colors.BLUE}Status:{Colors.RESET} {status}")
     print(f"{Colors.BLUE}Created:{Colors.RESET} {task.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n")
+
+
+def interactive_search(service: TaskService, parts: list):
+    """Handle 'search' command - finds tasks by ID or Title (partial match)."""
+    if len(parts) < 2:
+        print(f"{Colors.RED}❌ Error: Search query required{Colors.RESET}")
+        print(f"{Colors.YELLOW}Usage: search <id> or search <title>{Colors.RESET}")
+        return
+
+    identifier = parts[1].strip()
+
+    if not identifier:
+        print(f"{Colors.RED}❌ Error: Search query is required{Colors.RESET}")
+        return
+
+    # Try to parse as ID first
+    task = None
+    try:
+        task_id = int(identifier)
+        task = service.get_task(task_id)
+        if task:
+            # Show task found by ID
+            priority_colors = {
+                'high': f"{Colors.RED}HIGH{Colors.RESET}",
+                'medium': f"{Colors.YELLOW}MEDIUM{Colors.RESET}",
+                'low': f"{Colors.GREEN}LOW{Colors.RESET}"
+            }
+            status = f"{Colors.GREEN}✅ Complete{Colors.RESET}" if task.completed else f"{Colors.YELLOW}⏳ Pending{Colors.RESET}"
+            print(f"\n{Colors.CYAN}{Colors.BOLD}📝 Task #{task.id}{Colors.RESET}")
+            print(f"{Colors.BLUE}Title:{Colors.RESET} {task.title}")
+            print(f"{Colors.BLUE}Description:{Colors.RESET} {task.description if task.description else '(none)'}")
+            print(f"{Colors.BLUE}Priority:{Colors.RESET} {priority_colors[task.priority]}")
+            print(f"{Colors.BLUE}Status:{Colors.RESET} {status}")
+            print(f"{Colors.BLUE}Created:{Colors.RESET} {task.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        else:
+            print(f"{Colors.RED}❌ Task with ID {task_id} not found{Colors.RESET}")
+        return
+    except ValueError:
+        pass  # Not a number, search by title
+
+    # Search by title (case-insensitive partial match)
+    all_tasks = service.list_tasks()
+    matching_tasks = [t for t in all_tasks if identifier.lower() in t.title.lower()]
+
+    if len(matching_tasks) == 0:
+        print(f"{Colors.RED}❌ No tasks found matching '{identifier}'.{Colors.RESET}")
+        return
+    elif len(matching_tasks) == 1:
+        task = matching_tasks[0]
+        # Show the single task details
+        priority_colors = {
+            'high': f"{Colors.RED}HIGH{Colors.RESET}",
+            'medium': f"{Colors.YELLOW}MEDIUM{Colors.RESET}",
+            'low': f"{Colors.GREEN}LOW{Colors.RESET}"
+        }
+        status = f"{Colors.GREEN}✅ Complete{Colors.RESET}" if task.completed else f"{Colors.YELLOW}⏳ Pending{Colors.RESET}"
+        print(f"\n{Colors.CYAN}{Colors.BOLD}📝 Task #{task.id}{Colors.RESET}")
+        print(f"{Colors.BLUE}Title:{Colors.RESET} {task.title}")
+        print(f"{Colors.BLUE}Description:{Colors.RESET} {task.description if task.description else '(none)'}")
+        print(f"{Colors.BLUE}Priority:{Colors.RESET} {priority_colors[task.priority]}")
+        print(f"{Colors.BLUE}Status:{Colors.RESET} {status}")
+        print(f"{Colors.BLUE}Created:{Colors.RESET} {task.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n")
+    else:
+        # Multiple matches - show list
+        print(f"\n{Colors.CYAN}{Colors.BOLD}🔍 Found {len(matching_tasks)} tasks matching '{identifier}':{Colors.RESET}\n")
+        for t in matching_tasks:
+            status = f"{Colors.GREEN}✅{Colors.RESET}" if t.completed else f"{Colors.YELLOW}⏳{Colors.RESET}"
+            priority = t.priority.upper()
+            if t.priority == 'high':
+                priority = f"{Colors.RED}{priority}{Colors.RESET}"
+            elif t.priority == 'medium':
+                priority = f"{Colors.YELLOW}{priority}{Colors.RESET}"
+            else:
+                priority = f"{Colors.GREEN}{priority}{Colors.RESET}"
+            print(f"  [{status}] [ID: {t.id}] {t.title} ({priority})")
+        print()
 
 
 def interactive_complete(service: TaskService, parts: list):
@@ -427,6 +504,8 @@ def run_interactive_mode(service: TaskService):
                 interactive_list(service)
             elif command == "get":
                 interactive_get(service, parts)
+            elif command == "search":
+                interactive_search(service, parts)
             elif command == "complete":
                 interactive_complete(service, parts)
             elif command == "update":

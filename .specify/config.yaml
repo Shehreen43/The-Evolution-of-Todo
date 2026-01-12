@@ -1,0 +1,277 @@
+# =============================================================================
+# Spec-Kit Plus Configuration File
+# =============================================================================
+# Project: The Evolution of Todo
+# Purpose: Full-stack todo application with AI chatbot evolution path
+# This file defines project structure, phases, and feature mappings for
+# Spec-Kit Plus to manage specification artifacts systematically.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Project Identification
+# -----------------------------------------------------------------------------
+# Basic project metadata used by Spec-Kit Plus for identification and
+# versioning of specifications across the development lifecycle.
+
+name: "The Evolution of Todo"
+version: "1.0"
+
+# -----------------------------------------------------------------------------
+# Directory Structure Configuration
+# -----------------------------------------------------------------------------
+# Defines where specification artifacts are organized within the project.
+# Each key maps a logical namespace to its corresponding directory path.
+# This enables Spec-Kit Plus to locate and reference specs consistently.
+
+structure:
+  # Directory containing all feature specifications
+  # Stores user stories, acceptance criteria, and feature requirements
+  features_dir: ".specs/002-phaseII-full-stack-todo-application/features"
+
+  # Directory containing API endpoint specifications
+  # Stores REST API definitions, request/response schemas, and endpoint contracts
+  api_dir: ".specs/002-phaseII-full-stack-todo-application/api"
+
+  # Directory containing database specifications
+  # Stores schema definitions, entity relationships, and migration plans
+  database_dir: ".specs/002-phaseII-full-stack-todo-application/database"
+
+  # Directory containing UI/component specifications
+  # Stores component designs, page layouts, and UI/UX requirements
+  ui_dir: ".specs/002-phaseII-full-stack-todo-application/ui"
+
+  # Root specs directory (for shared/overview specifications)
+  specs_dir: ".specs/002-phaseII-full-stack-todo-application"
+
+# -----------------------------------------------------------------------------
+# Phase Definitions
+# -----------------------------------------------------------------------------
+# Defines development phases and their associated feature sets.
+# Phases are executed sequentially - each builds upon the previous.
+# Features listed for a phase are cumulative (include prior phases).
+
+phases:
+  # -----------------------------------------------------------------------------
+  # Phase I: In-Memory Console Application
+  # -----------------------------------------------------------------------------
+  # Status: COMPLETE
+  # Features: Basic task CRUD operations via command-line interface
+  # Tech Stack: Python 3.13+, UV, argparse, in-memory storage
+  # Points: 100
+
+  - name: phase1-console
+    features: [task-crud]
+    status: complete
+    description: "In-memory Python console application with basic task management"
+
+  # -----------------------------------------------------------------------------
+  # Phase II: Full-Stack Web Application
+  # -----------------------------------------------------------------------------
+  # Status: IN PROGRESS
+  # Features: Task CRUD + User Authentication via web interface
+  # Tech Stack: Next.js 16+ (Frontend), FastAPI (Backend), SQLModel, Neon DB
+  # Points: 150
+  # Deliverables:
+  #   - RESTful API endpoints for all CRUD operations
+  #   - Responsive Next.js frontend with App Router
+  #   - User authentication via Better Auth + JWT
+  #   - Persistent storage in Neon PostgreSQL
+
+  - name: phase2-web
+    features: [task-crud, authentication]
+    status: in_progress
+    description: "Full-stack web application with persistent storage and authentication"
+
+  # -----------------------------------------------------------------------------
+  # Phase III: AI-Powered Todo Chatbot
+  # -----------------------------------------------------------------------------
+  # Status: PLANNED
+  # Features: Task CRUD + Authentication + AI Chatbot Interface
+  # Tech Stack: OpenAI Agents SDK, Official MCP SDK, OpenAI ChatKit
+  # Points: 200
+  # Key Requirements:
+  #   - Conversational interface using natural language
+  #   - MCP server exposing task operations as AI tools
+  #   - Stateless chat endpoint with database-persisted conversation history
+  #   - AI agents use MCP tools to manage tasks
+
+  - name: phase3-chatbot
+    features: [task-crud, authentication, chatbot]
+    status: planned
+    description: "AI-powered conversational interface for task management"
+
+  # -----------------------------------------------------------------------------
+  # Phase IV: Local Kubernetes Deployment
+  # -----------------------------------------------------------------------------
+  # Status: PLANNED
+  # Features: All prior + Containerized deployment to Minikube
+  # Tech Stack: Docker, Minikube, Helm, kubectl-ai, kagent
+  # Points: 250
+  # Key Requirements:
+  #   - Containerize frontend and backend with Docker
+  #   - Create Helm charts for deployment
+  #   - Deploy and manage via kubectl-ai and kagent
+
+  - name: phase4-kubernetes
+    features: [task-crud, authentication, chatbot, deployment]
+    status: planned
+    description: "Local Kubernetes deployment with Helm charts"
+
+  # -----------------------------------------------------------------------------
+  # Phase V: Advanced Cloud Deployment
+  # -----------------------------------------------------------------------------
+  # Status: PLANNED
+  # Features: All prior + Event-driven architecture
+  # Tech Stack: Kafka, Dapr, DigitalOcean DOKS, CI/CD
+  # Points: 300
+  # Advanced Features:
+  #   - Recurring tasks with auto-rescheduling
+  #   - Due dates with time reminders
+  #   - Event-driven architecture using Kafka
+  #   - Dapr for distributed application runtime
+  #   - Cloud deployment to DigitalOcean Kubernetes
+
+  - name: phase5-cloud
+    features: [task-crud, authentication, chatbot, deployment, events]
+    status: planned
+    description: "Cloud deployment with event-driven architecture"
+
+# -----------------------------------------------------------------------------
+# Feature Definitions
+# -----------------------------------------------------------------------------
+# Defines available features that can be assigned to phases.
+# Each feature represents a distinct capability area of the application.
+
+features:
+  # Core task management operations
+  # Includes: Create, Read, Update, Delete, Mark Complete
+  task-crud:
+    description: "Task CRUD operations (create, read, update, delete, complete)"
+    priority: p1
+    phases: [phase1-console, phase2-web, phase3-chatbot, phase4-kubernetes, phase5-cloud]
+
+  # User authentication and authorization
+  # Includes: Signup, Signin, JWT token management, User isolation
+  authentication:
+    description: "User authentication using Better Auth + JWT tokens"
+    priority: p1
+    phases: [phase2-web, phase3-chatbot, phase4-kubernetes, phase5-cloud]
+
+  # AI-powered conversational interface
+  # Includes: Natural language processing, MCP tool integration
+  chatbot:
+    description: "AI chatbot interface using OpenAI Agents SDK and MCP"
+    priority: p2
+    phases: [phase3-chatbot, phase4-kubernetes, phase5-cloud]
+
+  # Kubernetes deployment and management
+  # Includes: Docker containers, Helm charts, kubectl operations
+  deployment:
+    description: "Containerized deployment with Kubernetes and Helm"
+    priority: p2
+    phases: [phase4-kubernetes, phase5-cloud]
+
+  # Event-driven architecture features
+  # Includes: Kafka messaging, Dapr integration, event sourcing
+  events:
+    description: "Event-driven architecture with Kafka and Dapr"
+    priority: p3
+    phases: [phase5-cloud]
+
+# -----------------------------------------------------------------------------
+# API Configuration
+# -----------------------------------------------------------------------------
+# Defines API-related settings for specification generation and validation.
+
+api:
+  # Base path for all API endpoints
+  base_path: "/api/{user_id}"
+
+  # Authentication header specification
+  auth_header: "Authorization: Bearer <token>"
+
+  # Supported REST methods
+  methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+
+  # Pagination settings
+  pagination:
+    default_limit: 20
+    max_limit: 100
+
+# -----------------------------------------------------------------------------
+# Database Configuration
+# -----------------------------------------------------------------------------
+# Defines database-related settings for schema generation and migrations.
+
+database:
+  # Database provider
+  provider: "postgresql"
+
+  # ORM tool
+  orm: "sqlmodel"
+
+  # Database host (for documentation purposes)
+  # Actual connection via environment variable: DATABASE_URL
+  host: "Neon Serverless PostgreSQL"
+
+  # Migration settings
+  migrations:
+    enabled: true
+    directory: "migrations"
+
+# -----------------------------------------------------------------------------
+# Frontend Configuration
+# -----------------------------------------------------------------------------
+# Defines frontend-related settings for specification generation.
+
+frontend:
+  # Framework
+  framework: "nextjs"
+
+  # Version
+  version: "16+"
+
+  # Router type
+  router: "app-router"
+
+  # Styling
+  styling: "tailwindcss"
+
+  # Authentication
+  auth: "better-auth"
+
+# -----------------------------------------------------------------------------
+# Backend Configuration
+# -----------------------------------------------------------------------------
+# Defines backend-related settings for specification generation.
+
+backend:
+  # Framework
+  framework: "fastapi"
+
+  # Language
+  language: "python"
+
+  # Version constraint
+  python_version: ">=3.13"
+
+  # Package manager
+  package_manager: "uv"
+
+# -----------------------------------------------------------------------------
+# References
+# -----------------------------------------------------------------------------
+# Useful links for documentation and tooling.
+
+references:
+  spec_kit_plus: "https://github.com/panaversity/spec-kit-plus"
+  nextjs_docs: "https://nextjs.org/docs"
+  fastapi_docs: "https://fastapi.tiangolo.com"
+  sqlmodel_docs: "https://sqlmodel.tiangolo.com"
+  better_auth_docs: "https://better-auth.com/docs"
+  neon_db_docs: "https://neon.tech/docs"

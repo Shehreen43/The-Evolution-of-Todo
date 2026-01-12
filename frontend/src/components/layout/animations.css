@@ -1,0 +1,33 @@
+/* Animations for DashboardHero */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateZ(0) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateZ(0) scale(1.05);
+  }
+}

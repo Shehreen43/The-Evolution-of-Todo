@@ -1,0 +1,97 @@
+# Development environment values for todo-chatbot
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    tag: "latest"
+  service:
+    type: NodePort
+    port: 3000
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    hosts:
+      - host: localhost
+        paths:
+          - path: /
+            pathType: Prefix
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+backend:
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    tag: "latest"
+  service:
+    type: NodePort
+    port: 8000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+mcpServer:
+  replicaCount: 1
+  image:
+    repository: todo-mcp-server
+    tag: "latest"
+  service:
+    type: NodePort
+    port: 8080
+  metricsPort: 8001
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+database:
+  postgresql:
+    enabled: true
+    auth:
+      postgresPassword: "dev-postgres-password"
+      username: "todo_dev_user"
+      password: "dev-user-password"
+      database: "todo_dev_database"
+    primary:
+      persistence:
+        enabled: false  # Disable persistence for development
+
+# AI Configuration for Development
+ai:
+  openrouterApiKey: ""  # Add your OpenRouter API key here or use environment variable
+  openaiApiKey: ""      # Add your OpenAI API key here or use environment variable
+  anthropicApiKey: ""   # Add your Anthropic API key here or use environment variable
+  googleApiKey: ""      # Add your Google API key here or use environment variable
+  openrouterModel: "openai/gpt-3.5-turbo"  # Free tier available
+  openaiModel: "gpt-3.5-turbo"             # Free tier available
+  anthropicModel: "claude-3-haiku-20240307" # Most affordable Claude model
+  googleModel: "gemini-1.5-flash"           # Most cost-effective Gemini model
+  fallbackModel: "gpt-3.5-turbo"            # Default fallback for development
+
+# Common settings
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false  # Allow writes for development
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001

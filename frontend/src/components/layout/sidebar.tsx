@@ -9,7 +9,8 @@ import {
     Clock,
     PlusCircle,
     User,
-    Zap
+    Zap,
+    MessageCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,11 +23,12 @@ export function Sidebar() {
         { name: 'Completed', href: '/tasks/completed', icon: CheckCircle2 },
         { name: 'Pending', href: '/tasks/pending', icon: Clock },
         { name: 'New Task', href: '/tasks/new', icon: PlusCircle },
+        { name: 'AI Assistant', href: '/chat', icon: MessageCircle },
         { name: 'Profile', href: '/profile', icon: User },
     ];
 
     return (
-        <aside className="hidden lg:flex w-64 flex-col border-r border-gray-100 bg-white p-6 min-h-[calc(100vh-64px)] overflow-y-auto">
+        <aside className="hidden lg:flex lg:sticky w-64 flex-col border-r border-gray-100 bg-white p-6 min-h-[calc(100vh-64px)] overflow-y-auto">
             <div className="space-y-6">
                 <div>
                     <h5 className="mb-4 px-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">

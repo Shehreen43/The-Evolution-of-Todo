@@ -1,0 +1,54 @@
+# Patterns to ignore when building packages.
+# This supports shell glob matching, relative path matching, and
+# trailing slashes. It does not support negation ('!' prefix).
+
+# Common VCS files
+.git/
+.gitignore
+.bzr/
+.bazaar/
+.hg/
+.hgignore
+.svn/
+
+# Common backup and temp files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.tmp
+.temp
+
+# Various IDEs
+.idea/
+.vscode/
+*.tmproj
+.vs/
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+tests/
+*.txt
+
+# Documentation
+*.md
+*.rst
+docs/
+
+# Local configuration file (luckily hidden by default)
+.helmignore
+
+# Editor-specific files
+*.iml
+*.iws
+*.bat
+*.sh
+
+# OS generated files
+ehthumbs.db
+Icon?
+Network Trash Folder
+Temporary Items
+.Trashes

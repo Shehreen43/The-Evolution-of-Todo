@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { Task } from '@/types';
-import { Pencil, Trash, Clock, CheckCircle2, Circle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Pencil, Trash, Clock, CheckCircle2, Circle, Calendar, Bell, Repeat } from 'lucide-react';
+import { formatDistanceToNow, format, isBefore } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui';
 
@@ -44,11 +44,15 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
         high: 'bg-red-100 text-red-700',
     };
 
+    // Helper to check if task is overdue
+    const isOverdue = task.due_date && !task.completed && isBefore(new Date(task.due_date), new Date());
+
     return (
         <div
             className={cn(
                 'group relative flex flex-col justify-between rounded-2xl border bg-white p-5 transition-all hover:shadow-xl hover:-translate-y-1',
-                task.completed ? 'border-emerald-100 bg-emerald-50/30' : 'border-gray-200 shadow-sm'
+                task.completed ? 'border-emerald-100 bg-emerald-50/30' :
+                isOverdue ? 'border-red-200 bg-red-50/30' : 'border-gray-200 shadow-sm'
             )}
         >
             <div className="flex items-start justify-between gap-4">
@@ -71,7 +75,8 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
                     <h3
                         className={cn(
                             'text-lg font-semibold transition-all truncate',
-                            task.completed ? 'text-gray-400 line-through' : 'text-gray-800'
+                            task.completed ? 'text-gray-400 line-through' :
+                            isOverdue ? 'text-red-600' : 'text-gray-800'
                         )}
                     >
                         {task.title}
@@ -79,11 +84,45 @@ export function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
                     {task.description && (
                         <p className={cn(
                             'mt-1 text-sm line-clamp-2',
-                            task.completed ? 'text-gray-400' : 'text-gray-600'
+                            task.completed ? 'text-gray-400' :
+                            isOverdue ? 'text-red-600' : 'text-gray-600'
                         )}>
                             {task.description}
                         </p>
                     )}
+
+                    {/* Advanced task information */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {task.due_date && (
+                            <div className={cn(
+                                'flex items-center gap-1 text-xs px-2 py-1 rounded-full',
+                                isOverdue ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                            )}>
+                                <Calendar className="h-3 w-3" />
+                                {format(new Date(task.due_date), 'MMM dd, HH:mm')}
+                            </div>
+                        )}
+
+                        {task.reminder_time && (
+                            <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700">
+                                <Bell className="h-3 w-3" />
+                                {format(new Date(task.reminder_time), 'MMM dd, HH:mm')}
+                            </div>
+                        )}
+
+                        {task.category && (
+                            <div className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                                #{task.category}
+                            </div>
+                        )}
+
+                        {task.is_recurring && (
+                            <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                                <Repeat className="h-3 w-3" />
+                                {task.recurrence_pattern || 'Recurring'}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

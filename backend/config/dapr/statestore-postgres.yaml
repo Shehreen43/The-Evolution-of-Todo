@@ -1,0 +1,30 @@
+# PostgreSQL State Store Component for Dapr
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: postgresql-statestore
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+  # PostgreSQL connection string
+  - name: connectionString
+    value: "host=localhost user=postgres password=password port=5432 database=dapr_state sslmode=disable"
+  # Table name for state storage
+  - name: tableName
+    value: "dapr_state_table"
+  # Metadata table name
+  - name: metadataTableName
+    value: "dapr_metadata_table"
+  # Connection pool size
+  - name: connectionPoolSize
+    value: "20"
+  # Maximum idle connections
+  - name: maxIdleConnections
+    value: "5"
+  # Maximum open connections
+  - name: maxOpenConnections
+    value: "10"
+  # Connection timeout
+  - name: connectionTimeout
+    value: "30"

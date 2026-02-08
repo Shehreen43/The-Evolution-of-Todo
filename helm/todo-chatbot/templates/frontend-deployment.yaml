@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-frontend
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+    app: frontend
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "todo-chatbot.selectorLabels" . | nindent 6 }}
+      app: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "todo-chatbot.selectorLabels" . | nindent 8 }}
+        app: frontend
+    spec:
+      {{- with .Values.frontend.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-frontend
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "http://{{ include "todo-chatbot.fullname" . }}-backend:{{ .Values.backend.service.port }}"
+            # Frontend AI Configuration
+            - name: NEXT_PUBLIC_ENABLE_AI_FEATURES
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: ENABLE_ADVANCED_TASKS
+            - name: NEXT_PUBLIC_ENABLE_RECURRING_TASKS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: ENABLE_RECURRING_TASKS
+            - name: NEXT_PUBLIC_ENABLE_REMINDERS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: ENABLE_REMINDERS
+            - name: NEXT_PUBLIC_ENABLE_CATEGORIES
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: ENABLE_CATEGORIES
+            - name: NEXT_PUBLIC_ENABLE_DUE_DATES
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: ENABLE_DUE_DATES
+      {{- with .Values.frontend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.frontend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.frontend.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

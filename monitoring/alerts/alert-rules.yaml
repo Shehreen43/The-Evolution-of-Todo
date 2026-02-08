@@ -1,0 +1,53 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: todo-chatbot-alerts
+  namespace: monitoring
+spec:
+  groups:
+  - name: todo-chatbot.rules
+    rules:
+    - alert: FrontendDown
+      expr: up{app="frontend"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Frontend is down"
+        description: "Frontend pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been down for more than 1 minute."
+
+    - alert: BackendDown
+      expr: up{app="backend"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Backend is down"
+        description: "Backend pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been down for more than 1 minute."
+
+    - alert: MCPServerError
+      expr: up{app="mcp-server"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "MCP Server is down"
+        description: "MCP Server pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been down for more than 1 minute."
+
+    - alert: HighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate detected"
+        description: "HTTP error rate is above 5% for more than 2 minutes."
+
+    - alert: PodRestartingFrequently
+      expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod restarting frequently"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted more than 3 times in the last 15 minutes."

@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-mcp-server
+  labels:
+    {{- include "todo-chatbot.labels" . | nindent 4 }}
+    app: mcp-server
+spec:
+  replicas: {{ .Values.mcpServer.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "todo-chatbot.selectorLabels" . | nindent 6 }}
+      app: mcp-server
+  template:
+    metadata:
+      labels:
+        {{- include "todo-chatbot.selectorLabels" . | nindent 8 }}
+        app: mcp-server
+    spec:
+      {{- with .Values.mcpServer.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-mcp-server
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.mcpServer.image.repository }}:{{ .Values.mcpServer.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.mcpServer.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 8001
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+          resources:
+            {{- toYaml .Values.mcpServer.resources | nindent 12 }}
+          env:
+            # AI Configuration for MCP Server from Secrets
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-ai-secrets
+                  key: OPENROUTER_API_KEY
+                  optional: true
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-ai-secrets
+                  key: OPENAI_API_KEY
+                  optional: true
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-ai-secrets
+                  key: ANTHROPIC_API_KEY
+                  optional: true
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-ai-secrets
+                  key: GOOGLE_API_KEY
+                  optional: true
+            - name: OPENROUTER_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: OPENROUTER_MODEL
+            - name: OPENAI_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: OPENAI_MODEL
+            - name: ANTHROPIC_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: ANTHROPIC_MODEL
+            - name: GOOGLE_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: GOOGLE_MODEL
+            - name: FALLBACK_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: FALLBACK_MODEL
+            # MCP Server Configuration
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: ENVIRONMENT
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "todo-chatbot.fullname" . }}-config
+                  key: LOG_LEVEL
+      {{- with .Values.mcpServer.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mcpServer.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mcpServer.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

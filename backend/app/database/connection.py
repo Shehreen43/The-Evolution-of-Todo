@@ -1,5 +1,8 @@
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, create_engine, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.pool import StaticPool
+from sqlalchemy import text
+from typing import Generator
 from app.config import settings
 import urllib.parse
 
@@ -52,17 +55,33 @@ def convert_postgres_to_asyncpg_url(postgres_url: str) -> str:
     return new_url
 
 # Convert the database URL to asyncpg format for Neon
-db_url = convert_postgres_to_asyncpg_url(settings.database_url)
+async_db_url = convert_postgres_to_asyncpg_url(settings.database_url)
+
+# Determine if SSL is required based on DATABASE_URL or environment
+# For local Docker Postgres, we typically don't use SSL
+ssl_required = "sslmode=require" in settings.database_url or "neon.tech" in settings.database_url
+connect_args = {"ssl": "require"} if ssl_required else {}
 
 # Async engine for FastAPI with Neon-specific settings
 async_engine = create_async_engine(
-    db_url,
+    async_db_url,
     echo=True,  # Set to False in production
-    connect_args={"ssl": "require"},
+    connect_args=connect_args,
     pool_size=5,  # Neon recommends smaller pool sizes
     max_overflow=10,
     pool_pre_ping=True,  # Verify connections before use
     pool_recycle=300  # Recycle connections periodically
+)
+
+# Sync engine for MCP tools and other sync operations
+sync_db_url = async_db_url.replace("postgresql+asyncpg://", "postgresql://")
+sync_engine = create_engine(
+    sync_db_url,
+    echo=False,  # Set to True for SQL query logging during development
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,  # Verify connections before using
+    pool_recycle=3600,   # Recycle connections after 1 hour
 )
 
 # Async session factory
@@ -71,6 +90,31 @@ async_session = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False
 )
+
+from contextlib import contextmanager
+
+@contextmanager
+def get_session() -> Generator:
+    """
+    Dependency for getting synchronous SQLModel session.
+    Used by advanced task routes.
+    """
+    with Session(sync_engine) as session:
+        yield session
+
+def get_sync_session() -> Generator:
+    """
+    Dependency function for providing synchronous database sessions.
+    Used primarily for MCP tools and other sync operations.
+    """
+    with sync_engine.connect() as connection:
+        with sync_engine.begin() as transaction:
+            try:
+                yield connection
+                transaction.commit()
+            except Exception as e:
+                transaction.rollback()
+                raise
 
 async def get_db():
     """Dependency for getting async database session."""
@@ -85,3 +129,22 @@ async def init_db():
     async with async_engine.begin() as conn:
         # Use run_sync to run the sync operation in an async context
         await conn.run_sync(SQLModel.metadata.create_all)
+
+def init_sync_db():
+    """Initialize database tables using sync engine."""
+    SQLModel.metadata.create_all(sync_engine)
+
+def check_db_connection() -> bool:
+    """
+    Check if database connection is working.
+
+    Returns:
+        bool: True if connection successful, False otherwise
+    """
+    try:
+        with sync_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception as e:
+        print(f"Database connection failed: {e}")
+        return False

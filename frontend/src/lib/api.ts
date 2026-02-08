@@ -50,10 +50,10 @@ class ApiClient {
         if (typeof window !== 'undefined') {
           // Better Auth typically stores tokens in localStorage with standard names
           token = localStorage.getItem('better-auth.session_token') ||
-                  localStorage.getItem('better_auth_token') ||
-                  localStorage.getItem('auth_token') ||
-                  Cookies.get('better-auth.session_token') ||
-                  Cookies.get('better_auth_token');
+            localStorage.getItem('better_auth_token') ||
+            localStorage.getItem('auth_token') ||
+            Cookies.get('better-auth.session_token') ||
+            Cookies.get('better_auth_token');
 
           // If no token found, try to extract from document.cookie manually
           if (!token) {
@@ -113,7 +113,7 @@ class ApiClient {
       detail: data?.detail || error.message || 'An unexpected error occurred',
     };
   }
-  
+
 
   // --- Token Management ---
 
@@ -161,6 +161,10 @@ class ApiClient {
     status?: TaskStatus;
     sort?: SortField;
     order?: SortOrder;
+    category?: string;
+    due_date_filter?: string;
+    is_recurring?: boolean;
+    priority?: 'low' | 'medium' | 'high';
   }): Promise<Task[]> {
     const response = await this.api.get<Task[]>(`/api/${userId}/tasks`, { params });
     return response.data;
@@ -202,6 +206,136 @@ class ApiClient {
    */
   public async toggleComplete(userId: string, taskId: number): Promise<Task> {
     const response = await this.api.patch<Task>(`/api/${userId}/tasks/${taskId}/complete`);
+    return response.data;
+  }
+
+  // --- Chat Endpoints ---
+
+  /**
+   * Send a message to the AI chatbot
+   */
+  public async sendMessage(userId: string, message: string, conversationId: number | null = null): Promise<{
+    conversation_id: number;
+    response: string;
+    tool_calls?: Array<{
+      tool: string;
+      arguments: Record<string, any>;
+      result: any;
+    }>;
+  }> {
+    const response = await this.api.post<{
+      conversation_id: number;
+      response: string;
+      tool_calls?: Array<{
+        tool: string;
+        arguments: Record<string, any>;
+        result: any;
+      }>;
+    }>(`/api/${userId}/chat`, {
+      message,
+      conversation_id: conversationId
+    });
+    return response.data;
+  }
+
+  /**
+   * Get list of user's conversations
+   */
+  public async getConversations(userId: string): Promise<Array<{
+    id: number;
+    user_id: string;
+    title: string;
+    created_at: string;
+    updated_at: string;
+  }>> {
+    const response = await this.api.get<Array<{
+      id: number;
+      user_id: string;
+      title: string;
+      created_at: string;
+      updated_at: string;
+    }>>(`/api/${userId}/conversations`);
+    return response.data;
+  }
+
+  /**
+   * Get messages for a specific conversation
+   */
+  public async getConversationMessages(userId: string, conversationId: number): Promise<Array<{
+    id: number;
+    conversation_id: number;
+    user_id: string;
+    role: string;
+    content: string;
+    tool_calls?: string | null;
+    created_at: string;
+  }>> {
+    const response = await this.api.get<Array<{
+      id: number;
+      conversation_id: number;
+      user_id: string;
+      role: string;
+      content: string;
+      tool_calls?: string | null;
+      created_at: string;
+    }>>(`/api/${userId}/conversations/${conversationId}/messages`);
+    return response.data;
+  }
+
+  // --- Planning Endpoints ---
+
+  /**
+   * Generate an execution plan for a complex prompt
+   */
+  public async getPlan(userId: string, prompt: string): Promise<{
+    plan: Array<{
+      step: string;
+      description: string;
+      tool: string;
+      arguments: Record<string, any>;
+    }>;
+  }> {
+    const response = await this.api.post<{
+      plan: Array<{
+        step: string;
+        description: string;
+        tool: string;
+        arguments: Record<string, any>;
+      }>;
+    }>(`/api/${userId}/chat/plan`, { prompt });
+    return response.data;
+  }
+
+  // --- Voice Endpoints ---
+
+  /**
+   * Transcribe audio to text
+   */
+  public async transcribeAudio(userId: string, audioBlob: Blob): Promise<{ text: string }> {
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'audio.wav');
+
+    const response = await this.api.post<{ text: string }>(
+      `/api/${userId}/audio/transcribe`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Synthesize speech from text
+   */
+  public async synthesizeSpeech(userId: string, text: string, language: 'en' | 'ur' = 'en'): Promise<Blob> {
+    const response = await this.api.post(
+      `/api/${userId}/audio/speak`,
+      { text, language },
+      { responseType: 'blob' }
+    );
     return response.data;
   }
 }

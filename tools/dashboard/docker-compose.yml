@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  dashboard-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5001
+    depends_on:
+      - dashboard-backend
+    networks:
+      - ai-dashboard-network
+
+  dashboard-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - ai-dashboard-network
+
+networks:
+  ai-dashboard-network:
+    driver: bridge

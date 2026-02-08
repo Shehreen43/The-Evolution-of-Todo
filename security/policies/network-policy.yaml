@@ -1,0 +1,35 @@
+terms:
+  - name: todo-network-policy
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: todo-app-network-policy
+      namespace: todo-app
+    spec:
+      podSelector:
+        matchLabels:
+          app: todo-chatbot
+      policyTypes:
+      - Ingress
+      - Egress
+      ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              app: todo-chatbot
+        ports:
+        - protocol: TCP
+          port: 3000  # frontend
+        - protocol: TCP
+          port: 8000  # backend
+        - protocol: TCP
+          port: 8080  # mcp server
+      egress:
+      - to: []  # Allow all egress traffic for now
+        ports:
+        - protocol: TCP
+          port: 53   # DNS
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80

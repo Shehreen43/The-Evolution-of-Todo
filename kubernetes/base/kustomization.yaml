@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Add namespace for all resources
+namespace: todo-app
+
+# Define common labels
+commonLabels:
+  app: todo-chatbot
+  version: v1
+
+# Define common annotations
+commonAnnotations:
+  app.kubernetes.io/part-of: todo-chatbot
+
+# Resources to include
+resources:
+  - frontend-deployment.yaml
+  - frontend-service.yaml
+  - backend-deployment.yaml
+  - backend-service.yaml
+  - mcp-server-deployment.yaml
+  - mcp-server-service.yaml
+  - postgres-deployment.yaml
+  - postgres-service.yaml
+
+# Define patches and configurations
+patchesStrategicMerge:
+  - deployment-patches.yaml
+
+# Variable references
+vars:
+  - name: FRONTEND_SERVICE_URL
+    objref:
+      kind: Service
+      name: frontend-service
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+  - name: BACKEND_SERVICE_URL
+    objref:
+      kind: Service
+      name: backend-service
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name

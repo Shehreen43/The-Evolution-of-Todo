@@ -86,6 +86,7 @@ export function SignUpForm() {
                     label="Email Address"
                     type="email"
                     placeholder="name@example.com"
+                    autoComplete="email"
                     error={errors.email?.message}
                     {...register('email')}
                 />
@@ -95,12 +96,14 @@ export function SignUpForm() {
                     placeholder="••••••••"
                     error={errors.password?.message}
                     helperText="Min 8 chars, 1 uppercase, 1 symbol"
+                    autoComplete="new-password"
                     {...register('password')}
                 />
                 <Input
                     label="Confirm Password"
                     type="password"
                     placeholder="••••••••"
+                    autoComplete="new-password"
                     error={errors.confirmPassword?.message}
                     {...register('confirmPassword')}
                 />

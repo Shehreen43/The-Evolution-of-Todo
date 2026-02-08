@@ -1,0 +1,30 @@
+# Kafka Pub/Sub Component for Dapr
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+  # Kafka broker connection setting
+  - name: brokers
+    value: "localhost:9092" # Replace with your Kafka broker addresses
+  # Specify the consumer group
+  - name: consumerGroup
+    value: "dapr-consumer-group"
+  # Specify the client ID
+  - name: clientID
+    value: "dapr-kafka-client"
+  # Controls the way data is extracted from the message
+  - name: authRequired
+    value: "false"
+  # Uncomment for authentication
+  # - name: saslUsername
+  #   value: "username"
+  # - name: saslPassword
+  #   value: "password"
+  # - name: saslMechanism
+  #   value: "PLAIN"
+  # - name: tlsEnable
+  #   value: "true"

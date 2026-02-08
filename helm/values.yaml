@@ -1,0 +1,100 @@
+# Default values for todo-ai-chatbot
+
+# Application configuration
+app:
+  image:
+    repository: todo-ai-chatbot
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Environment variables
+  env:
+    DATABASE_URL: "postgresql://user:password@todo-postgres:5432/todo_db"
+    KAFKA_BOOTSTRAP_SERVERS: "todo-kafka:9092"
+    DAPR_HTTP_PORT: "3500"
+    OPENROUTER_API_KEY: ""
+    BETTER_AUTH_SECRET: "your-super-secret-key-here"
+
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  # Replicas
+  replicaCount: 2
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: todo.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Database configuration
+database:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 15-alpine
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  postgresql:
+    username: postgres
+    password: password
+    database: todo_db
+
+# Kafka configuration
+kafka:
+  enabled: true
+  image:
+    repository: confluentinc/cp-kafka
+    tag: latest
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+# Dapr configuration
+dapr:
+  enabled: true
+  version: "1.11.0"
+  logLevel: "info"
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+
+# Autoscaling configuration
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80

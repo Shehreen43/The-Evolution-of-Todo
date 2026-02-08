@@ -37,5 +37,13 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/profile/:path*", "/tasks/:path*", "/signin", "/signup"],
+    matcher: [
+        "/dashboard/:path*",
+        "/profile/:path*",
+        "/tasks/:path*",
+        "/signin",
+        "/signup",
+        "/api/chat/:path*",
+        "/api/:path*"                 // Include all API routes to handle auth 
+  ],
 };

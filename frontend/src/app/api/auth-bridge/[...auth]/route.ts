@@ -4,8 +4,9 @@ import { NextResponse } from "next/server";
 // Bridge API route to forward auth requests to backend
 export async function GET(
   request: NextRequest,
-  { params }: { params: { auth: string[] } }
+  props: { params: Promise<{ auth: string[] }> }
 ) {
+  const params = await props.params;
   try {
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/${params.auth.join('/')}`;
     const response = await fetch(backendUrl, {
@@ -34,8 +35,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { auth: string[] } }
+  props: { params: Promise<{ auth: string[] }> }
 ) {
+  const params = await props.params;
   try {
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/${params.auth.join('/')}`;
     const body = await request.json();

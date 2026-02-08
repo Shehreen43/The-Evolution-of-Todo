@@ -1,0 +1,118 @@
+# Production environment values for todo-chatbot
+
+frontend:
+  replicaCount: 3
+  image:
+    repository: todo-frontend
+    tag: "prod-latest"
+  service:
+    type: NodePort
+    port: 3000
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: todo-chatbot.production.com
+        paths:
+          - path: /
+            pathType: Prefix
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+backend:
+  replicaCount: 3
+  image:
+    repository: todo-backend
+    tag: "prod-latest"
+  service:
+    type: NodePort
+    port: 8000
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "300m"
+    limits:
+      memory: "1Gi"
+      cpu: "600m"
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+mcpServer:
+  replicaCount: 2
+  image:
+    repository: todo-mcp-server
+    tag: "prod-latest"
+  service:
+    type: NodePort
+    port: 8080
+  metricsPort: 8001
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 70
+
+database:
+  postgresql:
+    enabled: true
+    auth:
+      postgresPassword: "prod-secure-postgres-password"
+      username: "todo_prod_user"
+      password: "prod-secure-user-password"
+      database: "todo_prod_database"
+    primary:
+      persistence:
+        enabled: true
+        size: 10Gi
+        storageClass: "fast-ssd"
+
+# AI Configuration for Production
+ai:
+  openrouterApiKey: ""  # Should be set via secret in production
+  openaiApiKey: ""      # Should be set via secret in production
+  anthropicApiKey: ""   # Should be set via secret in production
+  googleApiKey: ""      # Should be set via secret in production
+  openrouterModel: "openai/gpt-4o"           # Production model
+  openaiModel: "gpt-4o"                      # Production model
+  anthropicModel: "claude-3-5-sonnet-20241022" # Production model
+  googleModel: "gemini-1.5-pro"               # Production model
+  fallbackModel: "openai/gpt-3.5-turbo"       # Fallback for cost savings
+
+# Production security settings
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001

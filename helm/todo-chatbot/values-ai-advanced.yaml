@@ -1,0 +1,190 @@
+# AI-Advanced configuration for Todo Chatbot
+# Optimized for AI agent integration with advanced task features
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: todo-frontend
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 3000
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"  # Use staging for testing
+    hosts:
+      - host: todo-ai.local
+        paths:
+          - path: /
+            pathType: Prefix
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  # Advanced task features enabled in frontend
+  env:
+    - name: NEXT_PUBLIC_ENABLE_ADVANCED_TASKS
+      value: "true"
+    - name: NEXT_PUBLIC_ENABLE_RECURRING_TASKS
+      value: "true"
+    - name: NEXT_PUBLIC_ENABLE_REMINDERS
+      value: "true"
+    - name: NEXT_PUBLIC_ENABLE_CATEGORIES
+      value: "true"
+    - name: NEXT_PUBLIC_ENABLE_DUE_DATES
+      value: "true"
+
+backend:
+  replicaCount: 2
+  image:
+    repository: todo-backend
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "300m"
+    limits:
+      memory: "1Gi"
+      cpu: "600m"
+  # Backend advanced features configuration
+  env:
+    - name: ENABLE_ADVANCED_TASKS
+      value: "true"
+    - name: ENABLE_RECURRING_TASKS
+      value: "true"
+    - name: ENABLE_REMINDERS
+      value: "true"
+    - name: ENABLE_CATEGORIES
+      value: "true"
+    - name: ENABLE_DUE_DATES
+      value: "true"
+
+mcpServer:
+  replicaCount: 1
+  image:
+    repository: todo-mcp-server
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8080
+  metricsPort: 8001
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  # MCP server configuration for advanced AI features
+  env:
+    - name: ENABLE_MCP_TOOLS
+      value: "true"
+    - name: ENABLE_ADVANCED_TASK_TOOLS
+      value: "true"
+    - name: ENABLE_RECURRING_TASK_TOOLS
+      value: "true"
+    - name: ENABLE_REMINDER_TOOLS
+      value: "true"
+
+database:
+  postgresql:
+    enabled: true
+    auth:
+      postgresPassword: "secure-postgres-password"
+      username: "todo_ai_user"
+      password: "secure-user-password"
+      database: "todo_ai_database"
+    primary:
+      persistence:
+        enabled: true
+        size: 5Gi
+      resources:
+        requests:
+          storage: 5Gi
+
+# AI Provider Configuration with Advanced Task Support
+ai:
+  # Free/Low-cost models for development and testing
+  openrouterModel: "openai/gpt-3.5-turbo"      # Cost-effective for development
+  openaiModel: "gpt-3.5-turbo"                # Cost-effective for development
+  anthropicModel: "claude-3-haiku-20240307"   # Most affordable Claude model
+  googleModel: "gemini-1.5-flash"              # Most cost-effective Gemini model
+  fallbackModel: "gpt-3.5-turbo"              # Default fallback
+
+  # Advanced task AI features
+  enableAdvancedTaskFeatures: true
+  enableNaturalLanguageProcessing: true
+  enableSmartScheduling: true
+  enableContextAwareResponses: true
+  enableMultiModalSupport: false  # Currently not needed for task management
+
+# Advanced Task Features Configuration
+advancedTasks:
+  # Due date and reminder features
+  enableDueDates: true
+  enableReminders: true
+  enableRecurringTasks: true
+  enableTaskCategories: true
+  enableTaskPriorities: true
+
+  # Recurring task patterns supported
+  supportedRecurrencePatterns:
+    - "daily"
+    - "weekly"
+    - "monthly"
+    - "yearly"
+
+  # Default settings for recurring tasks
+  defaultRecurrenceLimit: 100  # Maximum occurrences for recurring tasks
+
+  # Smart reminder settings
+  smartReminders:
+    enabled: true
+    defaultTimeBefore: "1h"  # Default to 1 hour before due
+    maxRemindersPerTask: 3   # Maximum number of reminders per task
+
+  # AI-enhanced categorization
+  aiCategorization:
+    enabled: true
+    autoCategoryThreshold: 0.7  # Confidence threshold for auto-categorization
+
+# Performance and Scaling Configuration
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 80
+
+# Security Configuration
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false  # Allow writes for application functionality
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+
+# Monitoring and Observability
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: false
+  logging:
+    level: "info"
+    format: "json"

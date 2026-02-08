@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todo-ai-chatbot.fullname" . }}-dapr-components
+  labels:
+    {{- include "todo-ai-chatbot.labels" . | nindent 4 }}
+data:
+  kafka-pubsub.yaml: |
+    apiVersion: dapr.io/v1alpha1
+    kind: Component
+    metadata:
+      name: kafka-pubsub
+    spec:
+      type: pubsub.kafka
+      version: v1
+      metadata:
+      - name: brokers
+        value: {{ .Values.app.env.KAFKA_BOOTSTRAP_SERVERS | quote }}
+      - name: consumerGroup
+        value: "dapr-consumer-group"
+      - name: clientID
+        value: "dapr-kafka-client"
+      - name: authRequired
+        value: "false"
+  postgresql-statestore.yaml: |
+    apiVersion: dapr.io/v1alpha1
+    kind: Component
+    metadata:
+      name: postgresql-statestore
+    spec:
+      type: state.postgresql
+      version: v1
+      metadata:
+      - name: connectionString
+        value: {{ .Values.app.env.DATABASE_URL | quote }}
+      - name: tableName
+        value: "dapr_state_table"
+      - name: metadataTableName
+        value: "dapr_metadata_table"
+  kubernetes-secrets.yaml: |
+    apiVersion: dapr.io/v1alpha1
+    kind: Component
+    metadata:
+      name: kubernetes-secrets
+    spec:
+      type: secretstores.kubernetes
+      version: v1
+      metadata: []

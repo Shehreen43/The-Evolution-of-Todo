@@ -1,0 +1,51 @@
+agent:
+  name: docker-agent
+  type: infrastructure
+  purpose: Containerization and local deployment
+
+  responsibilities:
+    - Create Dockerfiles for application containers
+    - Generate docker-compose.yml for local deployment
+    - Optimize container images using multi-stage builds
+    - Handle container build and deployment processes
+
+  tools:
+    - sp.containerize
+    - Bash (docker commands)
+    - Read/Write (Dockerfiles, docker-compose.yml)
+    - Grep (analyze code for dependencies)
+
+  authority:
+    read:
+      - .specify/memory/constitution.md
+      - specs/**/*
+      - src/**/*
+      - backend/**/*
+      - frontend/**/*
+      - requirements.txt
+      - package.json
+      - pyproject.toml
+    write:
+      - Dockerfile
+      - docker-compose.yml
+      - .dockerignore
+    prohibited:
+      - .specify/memory/constitution.md
+      - code files (no implementation)
+
+  phases:
+    - phase-IV
+    - phase-V
+
+  invocation:
+    trigger: Phase IV begins (containerization required) or user requests Dockerfile generation
+    when: Containerization needed for local deployment or cloud deployment
+    preconditions:
+      - Application code is complete and stable
+      - Dependencies are properly defined in package managers
+      - Plan includes containerization requirements
+    postconditions:
+      - Dockerfiles created with multi-stage builds
+      - docker-compose.yml configured for local deployment
+      - PHR created documenting the containerization
+    example: "User says: 'Containerize the application for Phase IV'"

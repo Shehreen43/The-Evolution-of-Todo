@@ -1,0 +1,44 @@
+# Node & Next.js
+node_modules
+.next
+.next/cache
+dist
+out
+build
+
+# Logs
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+coverage
+.nyc_output
+.coverage
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+env
+.pytest_cache
+
+# IDE / Editor
+.vscode
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+
+# Docker
+.dockerignore
+
+# Env / secrets
+.env
+
+# Optional to ignore markdown
+*.md
+LICENSE

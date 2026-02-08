@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-// Custom auth client that directly communicates with backend API
+
 import { useState, useEffect } from 'react';
 
 // Define types
@@ -21,7 +21,8 @@ const createSimpleAuthClient = () => {
   const signUp = {
     email: async (data: { email: string; password: string; name: string; callbackURL?: string }) => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${apiUrl}/api/auth/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -55,7 +56,8 @@ const createSimpleAuthClient = () => {
   const signIn = {
     email: async (data: { email: string; password: string; callbackURL?: string }) => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signin`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${apiUrl}/api/auth/signin`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -87,7 +89,8 @@ const createSimpleAuthClient = () => {
 
   const signOut = async () => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      await fetch(`${apiUrl}/api/auth/logout`, {
         method: 'POST',
       });
 
@@ -112,7 +115,8 @@ const createSimpleAuthClient = () => {
             return;
           }
 
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+          const response = await fetch(`${apiUrl}/api/auth/me`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

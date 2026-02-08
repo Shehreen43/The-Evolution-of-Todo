@@ -21,6 +21,7 @@ from app.utils.jwt import create_access_token, get_password_hash, verify_passwor
 from app.models.user import User
 from app.database.connection import get_db
 from app.config import settings
+from app.api.deps import get_current_user
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -101,7 +102,7 @@ async def signup(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         )
 
     # Check if user already exists
-    result = await db.execute(select(User).filter(User.email == user_data.email))
+    result = await db.execute(select(User).where(User.email == user_data.email))
     existing_user = result.scalar_one_or_none()
 
     if existing_user:
@@ -143,7 +144,7 @@ async def signup(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 async def signin(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate user and return JWT token."""
     # Find user by email
-    result = await db.execute(select(User).filter(User.email == login_data.email))
+    result = await db.execute(select(User).where(User.email == login_data.email))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(login_data.password, user.password_hash):
@@ -169,42 +170,26 @@ async def signin(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
     )
 
 
-async def get_current_user(token: HTTPAuthorizationCredentials = Depends(security), db: AsyncSession = Depends(get_db)):
-    """Get the current user from a JWT token."""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    try:
-        # Decode the token
-        payload = decode_access_token(token.credentials)
-        if payload is None:
-            raise credentials_exception
-            
-        user_id = payload.sub
-        
-    except Exception:
-        raise credentials_exception
-
-    # Get user from database
-    result = await db.execute(select(User).filter(User.id == user_id))
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_profile(
+    token_payload: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get current user information."""
+    # Get user from database using the user ID from the token
+    result = await db.execute(select(User).where(User.id == token_payload.sub))
     user = result.scalar_one_or_none()
 
     if user is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
 
-    return user
-
-
-@router.get("/me", response_model=UserResponse)
-async def get_current_user_profile(current_user: User = Depends(get_current_user)):
-    """Get current user information."""
     return UserResponse(
-        id=current_user.id,
-        email=current_user.email,
-        name=current_user.name
+        id=user.id,
+        email=user.email,
+        name=user.name
     )
 
 

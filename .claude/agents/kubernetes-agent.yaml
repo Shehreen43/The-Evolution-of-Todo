@@ -1,0 +1,47 @@
+agent:
+  name: kubernetes-agent
+  type: infrastructure
+  purpose: Orchestration and deployment
+
+  responsibilities:
+    - Generate Kubernetes manifests for deployment
+    - Create Helm charts for application packaging
+    - Configure K8s resources (Deployments, Services, ConfigMaps, Secrets)
+    - Handle K8s deployment and scaling configurations
+
+  tools:
+    - sp.helm-chart
+    - Bash (kubectl, helm commands)
+    - Read/Write (K8s manifests, Helm charts)
+    - Grep (analyze Docker images and deployment requirements)
+
+  authority:
+    read:
+      - .specify/memory/constitution.md
+      - specs/**/*
+      - Docker images and containerization artifacts
+      - plan.md for K8s requirements
+    write:
+      - Kubernetes manifests (deployments, services, configmaps, secrets)
+      - Helm charts (Chart.yaml, values.yaml, templates/)
+      - K8s configuration files
+    prohibited:
+      - .specify/memory/constitution.md
+      - code files (no implementation)
+
+  phases:
+    - phase-IV
+    - phase-V
+
+  invocation:
+    trigger: After Docker images are built or user requests K8s manifests or Helm charts
+    when: Deployment to Minikube or cloud K8s needed
+    preconditions:
+      - Docker images are built and available
+      - Plan includes K8s deployment requirements
+      - Containerization artifacts are complete
+    postconditions:
+      - Kubernetes manifests created for all services
+      - Helm charts configured with proper values
+      - PHR created documenting the K8s setup
+    example: "User says: 'Generate Kubernetes manifests for deployment'"

@@ -9,6 +9,7 @@ import { TaskList, TaskStats } from '@/components/tasks';
 import { TaskFilters } from '@/components/tasks/task-filters';
 import { Button, showToast, Modal } from '@/components/ui';
 import { TaskForm } from '@/components/tasks/task-form';
+import { useReminderNotifications } from '@/hooks/useReminderNotifications';
 import { Plus } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -22,6 +23,9 @@ export default function DashboardPage() {
     const [status, setStatus] = React.useState<TaskStatus>('all');
     const [sortBy, setSortBy] = React.useState<SortField>('created_at');
     const [sortOrder, setSortOrder] = React.useState<SortOrder>('desc');
+    const [category, setCategory] = React.useState<string>('');
+    const [dueDateFilter, setDueDateFilter] = React.useState<string>('');
+    const [recurringFilter, setRecurringFilter] = React.useState<boolean | 'all'>('all');
 
     // Fetch Tasks
     const fetchTasks = React.useCallback(async () => {
@@ -43,25 +47,89 @@ export default function DashboardPage() {
         }
     }, [session, fetchTasks]);
 
+    // Initialize reminder notifications
+    useReminderNotifications(tasks);
+
     // Derived State (Filtered & Sorted Tasks)
     const filteredTasks = React.useMemo(() => {
         let result = [...tasks];
 
-        // Filter
+        // Filter by status
         if (status === 'completed') result = result.filter(t => t.completed);
         if (status === 'pending') result = result.filter(t => !t.completed);
 
+        // Filter by category
+        if (category === 'category') {
+            result = result.filter(t => t.category?.toLowerCase() === category.toLowerCase());
+        }
+
+        // Filter by recurring status
+        if (recurringFilter !== 'all') {
+            result = result.filter(t => t.is_recurring === recurringFilter);
+        }
+
+        // Filter by due date
+        if (dueDateFilter) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const endOfWeek = new Date(today);
+            endOfWeek.setDate(today.getDate() + 7);
+            const endOfMonth = new Date(today);
+            endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+            switch (dueDateFilter) {
+                case 'today':
+                    result = result.filter(t => {
+                        if (!t.due_date) return false;
+                        const dueDate = new Date(t.due_date);
+                        return dueDate.toDateString() === today.toDateString();
+                    });
+                    break;
+                case 'overdue':
+                    result = result.filter(t => {
+                        if (!t.due_date || t.completed) return false;
+                        const dueDate = new Date(t.due_date);
+                        return dueDate < now;
+                    });
+                    break;
+                case 'week':
+                    result = result.filter(t => {
+                        if (!t.due_date) return false;
+                        const dueDate = new Date(t.due_date);
+                        return dueDate >= today && dueDate <= endOfWeek;
+                    });
+                    break;
+                case 'month':
+                    result = result.filter(t => {
+                        if (!t.due_date) return false;
+                        const dueDate = new Date(t.due_date);
+                        return dueDate >= today && dueDate <= endOfMonth;
+                    });
+                    break;
+            }
+        }
+
         // Sort
-        result.sort((a, b) => {
-            const valA = a[sortBy] || '';
-            const valB = b[sortBy] || '';
-            if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-            if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-            return 0;
-        });
+                result.sort((a, b) => {
+                    let valA: any = a[sortBy];
+                    let valB: any = b[sortBy];
+        
+                    // Handle date comparisons
+                    if (sortBy === 'due_date' as SortField && valA && valB) {
+                        valA = new Date(valA);
+                        valB = new Date(valB);
+                    } else if (sortBy === 'created_at' || sortBy === 'updated_at') {
+                        valA = new Date(valA);
+                        valB = new Date(valB);
+                    }
+        
+                    if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                    return 0;
+                });
 
         return result;
-    }, [tasks, status, sortBy, sortOrder]);
+    }, [tasks, status, category, dueDateFilter, recurringFilter, sortBy, sortOrder]);
 
     // Handle Create/Update
     const handleSubmit = async (data: CreateTaskInput | UpdateTaskInput) => {
@@ -121,7 +189,7 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-5">
             <DashboardHero user={{ name: session?.user?.name || '' }} />
 
             <TaskStats tasks={tasks} />
@@ -133,6 +201,12 @@ export default function DashboardPage() {
                 onSortChange={setSortBy}
                 currentOrder={sortOrder}
                 onOrderChange={setSortOrder}
+                currentCategory={category}
+                onCategoryChange={setCategory}
+                currentDueDateFilter={dueDateFilter}
+                onDueDateFilterChange={setDueDateFilter}
+                currentRecurringFilter={recurringFilter}
+                onRecurringFilterChange={setRecurringFilter}
             />
 
             <div className="flex items-center justify-between">

@@ -1,0 +1,59 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-frontend-monitor
+  namespace: monitoring
+  labels:
+    app: todo-chatbot
+    component: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  namespaceSelector:
+    matchNames:
+    - default  # Assuming default namespace, adjust as needed
+  endpoints:
+  - port: http
+    interval: 30s
+    path: /metrics  # Adjust path if your app exposes metrics at a different endpoint
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-backend-monitor
+  namespace: monitoring
+  labels:
+    app: todo-chatbot
+    component: backend
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  namespaceSelector:
+    matchNames:
+    - default
+  endpoints:
+  - port: http
+    interval: 30s
+    path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-mcp-server-monitor
+  namespace: monitoring
+  labels:
+    app: todo-chatbot
+    component: mcp-server
+spec:
+  selector:
+    matchLabels:
+      app: mcp-server
+  namespaceSelector:
+    matchNames:
+    - default
+  endpoints:
+  - port: metrics  # Using the metrics port specifically
+    interval: 30s
+    path: /metrics

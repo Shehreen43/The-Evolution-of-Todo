@@ -63,7 +63,7 @@ export default function SettingsPage() {
             Permanently delete your account and all your data.
           </p>
         </div>
-        <Button variant="destructive">Delete Account</Button>
+        <Button variant="danger">Delete Account</Button>
       </div>
     </div>
   );

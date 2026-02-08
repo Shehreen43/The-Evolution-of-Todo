@@ -1,24 +1,25 @@
-// Use the auth bridge to forward requests to the backend
 import { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+// Bridge API route to forward auth requests to backend
 export async function GET(
   request: NextRequest,
-  { params }: { params: { auth: string[] } }
+  props: { params: Promise<{ auth: string[] }> }
 ) {
+  const params = await props.params;
   try {
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/${params.auth.join('/')}`;
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...Object.fromEntries(request.headers.entries()),
+        ...Object.fromEntries(request.headers.entries()), // Forward all headers
       },
     });
 
     const data = await response.json();
 
-    // Create response with proper headers for session handling
+    // Create response with proper session handling
     const nextResponse = NextResponse.json(data, { status: response.status });
 
     // If this is a session-related response, set appropriate cookies
@@ -34,8 +35,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { auth: string[] } }
+  props: { params: Promise<{ auth: string[] }> }
 ) {
+  const params = await props.params;
   try {
     const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/${params.auth.join('/')}`;
     const body = await request.json();
@@ -44,7 +46,7 @@ export async function POST(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...Object.fromEntries(request.headers.entries()),
+        ...Object.fromEntries(request.headers.entries()), // Forward all headers
       },
       body: JSON.stringify(body),
     });

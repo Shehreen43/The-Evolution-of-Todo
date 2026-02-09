@@ -13,10 +13,7 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ["better-auth"],
 
-  // This fixes Turbopack workspace root warning
-  turbopack: {
-    root: __dirname,
-  },
+  // Removed turbopack root config as it caused Tailwind v4 resolution issues.
 };
 
 export default nextConfig;
